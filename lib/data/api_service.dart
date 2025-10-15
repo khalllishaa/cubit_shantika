@@ -1,32 +1,30 @@
-import 'package:cubit_shantika/config/constant.dart';
 import 'package:dio/dio.dart';
+import 'package:retrofit/retrofit.dart';
+import 'package:cubit_shantika/config/constant.dart';
+import 'package:cubit_shantika/models/game_models.dart';
+import 'package:cubit_shantika/models/response/game_response.dart';
 
-import '../config/env/env.dart';
+part 'api_service.g.dart';
 
-class ApiService {
-  final Dio dio;
+@RestApi(baseUrl: AppConfig.rawgBase)
+abstract class ApiService {
+  factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
-  ApiService({Dio? dio})
-      : dio = dio ??
-      Dio(BaseOptions(
-        baseUrl: AppConfig.rawgBase,
-        queryParameters: {'key': Env.apiKey},
-        connectTimeout: Duration(seconds: 15),
-        receiveTimeout: Duration(seconds: 15),
-      ));
+  @GET("/games")
+  Future<HttpResponse<GamesResponse>> getGames({
+    @Query("page") int? page,
+    @Query("page_size") int? pageSize,
+  });
 
-  Future<Map<String, dynamic>> getGames({int page = 1, int pageSize = AppConfig.defaultPageSize}) async {
-    final response = await dio.get('/games', queryParameters: {'page': page, 'page_size': pageSize});
-    return (response.data as Map<String, dynamic>);
-  }
+  @GET("/games")
+  Future<HttpResponse<GamesResponse>> searchGames({
+    @Query("search") required String search,
+    @Query("page") int? page,
+    @Query("page_size") int? pageSize,
+  });
 
-  Future<Map<String, dynamic>> searchGames({required String query, int page = 1, int pageSize = AppConfig.defaultPageSize}) async {
-    final response = await dio.get('/games', queryParameters: {'search': query, 'page': page, 'page_size': pageSize});
-    return (response.data as Map<String, dynamic>);
-  }
-
-  Future<Map<String, dynamic>> getDetail(int id) async {
-    final response = await dio.get('/games/$id');
-    return (response.data as Map<String, dynamic>);
-  }
+  @GET("/games/{id}")
+  Future<HttpResponse<GameModel>> getGameDetail({
+    @Path("id") required int id,
+  });
 }
