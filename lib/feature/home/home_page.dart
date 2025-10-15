@@ -29,6 +29,9 @@ class HomePage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text("Games"),
+              surfaceTintColor: Color(0xff00ffffff),
+              scrolledUnderElevation: 0,
+              elevation: 0,
             ),
             body: BlocBuilder<HomeCubit, HomeState>(
               builder: (context, state) {
@@ -45,7 +48,7 @@ class HomePage extends StatelessWidget {
                       itemCount: state.games.length,
                       itemBuilder: (context, index) {
                         final game = state.games[index];
-                        return _GameListTile(game: game);
+                        return _buildGameTile(context, game);
                       },
                     ),
                   );
@@ -65,67 +68,65 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _GameListTile extends StatelessWidget {
-  final dynamic game; // Replace with your Game model type
+Widget _buildGameTile(BuildContext context, dynamic game) {
+  return BlocBuilder<FavoriteCubit, FavoriteState>(
+    builder: (context, favState) {
+      bool isFav = false;
 
-  const _GameListTile({required this.game});
+      // Check dari berbagai state
+      if (favState is FavoriteLoaded) {
+        isFav = favState.favoriteIds.contains(game.id);
+      } else if (favState is FavoriteToggled) {
+        isFav = favState.favoriteIds.contains(game.id);
+      }
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: context.read<FavoriteCubit>().isFavorite(game.id),
-      builder: (context, snapshot) {
-        final isFav = snapshot.data ?? false;
-
-        return ListTile(
-          leading: game.backgroundImage != null
-              ? Image.network(
-            game.backgroundImage!,
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
-          )
-              : const Icon(Icons.image_not_supported),
-          title: Text(game.name),
-          subtitle: Text("Rating: ${game.rating ?? '-'}"),
-          trailing: IconButton(
-            icon: Icon(
-              isFav ? Icons.favorite : Icons.favorite_border,
-              color: Colors.red,
-            ),
-            onPressed: () async {
-              await context.read<FavoriteCubit>().toggleFavorite(
-                id: game.id,
-                name: game.name,
-                rating: game.rating,
-                backgroundImage: game.backgroundImage,
-              );
-
-              // Show snackbar
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isFav
-                          ? '${game.name} removed from favorites'
-                          : '${game.name} added to favorites',
-                    ),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
-              }
-            },
+      return ListTile(
+        leading: game.backgroundImage != null
+            ? Image.network(
+          game.backgroundImage!,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+        )
+            : const Icon(Icons.image_not_supported),
+        title: Text(game.name),
+        subtitle: Text("Rating: ${game.rating ?? '-'}"),
+        trailing: IconButton(
+          icon: Icon(
+            isFav ? Icons.favorite : Icons.favorite_border,
+            color: Colors.red,
           ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DetailPage(gameId: game.id),
-              ),
+          onPressed: () async {
+            await context.read<FavoriteCubit>().toggleFavorite(
+              id: game.id,
+              name: game.name,
+              rating: game.rating,
+              backgroundImage: game.backgroundImage,
             );
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isFav
+                        ? '${game.name} removed from favorites'
+                        : '${game.name} added to favorites',
+                  ),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            }
           },
-        );
-      },
-    );
-  }
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DetailPage(gameId: game.id),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
