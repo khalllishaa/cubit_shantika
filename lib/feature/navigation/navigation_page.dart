@@ -1,3 +1,4 @@
+import 'package:cubit_shantika/config/service_locator.dart';
 import 'package:cubit_shantika/feature/favourite/favourite_page.dart';
 import 'package:cubit_shantika/feature/home/cubit/home_cubit.dart';
 import 'package:cubit_shantika/feature/home/home_page.dart';
@@ -6,14 +7,12 @@ import 'package:cubit_shantika/repository/game_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/api_service.dart';
-
 class NavigationPage extends StatelessWidget {
   NavigationPage({super.key});
 
   final List<Widget> screens = [
     BlocProvider(
-      create: (_) => HomeCubit(repo: GameRepository(ApiService()))..fetchInitial(),
+      create: (_) => HomeCubit(repo: getIt<GameRepository>())..fetchInitial(),
       child: HomePage(),
     ),
     FavouritePage(),

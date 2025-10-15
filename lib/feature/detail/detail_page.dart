@@ -1,3 +1,4 @@
+import 'package:cubit_shantika/config/service_locator.dart';
 import 'package:cubit_shantika/feature/detail/cubit/detail_cubit.dart';
 import 'package:cubit_shantika/feature/detail/cubit/detail_state.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ class DetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DetailCubit(GameRepository(ApiService()))..fetchDetail(gameId),
+      create: (_) => DetailCubit(getIt<GameRepository>())..fetchDetail(gameId),
       child: Scaffold(
         appBar: AppBar(title: Text("Detail")),
         body: BlocBuilder<DetailCubit, DetailState>(

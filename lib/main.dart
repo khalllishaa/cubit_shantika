@@ -1,10 +1,16 @@
+import 'package:cubit_shantika/config/service_locator.dart';
 import 'package:cubit_shantika/feature/navigation/navigation_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'feature/navigation/navigation_cubit.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Setup Service Locator
+  await setupServiceLocator();
+
   runApp(const MyApp());
 }
 
