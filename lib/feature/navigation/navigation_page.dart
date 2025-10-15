@@ -15,7 +15,7 @@ class NavigationPage extends StatelessWidget {
       create: (_) => HomeCubit(repo: getIt<GameRepository>())..fetchInitial(),
       child: HomePage(),
     ),
-    FavouritePage(),
+    FavoritesPage(),
   ];
 
   @override
