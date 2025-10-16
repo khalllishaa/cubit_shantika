@@ -25,7 +25,6 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    // Hapus database lama
     await deleteDatabase(path);
 
     return await openDatabase(

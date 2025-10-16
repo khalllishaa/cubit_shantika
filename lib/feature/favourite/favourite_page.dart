@@ -1,6 +1,7 @@
 import 'package:cubit_shantika/feature/favourite/cubit/favouite_cubit.dart';
 import 'package:cubit_shantika/feature/favourite/cubit/favourite_state.dart';
 import 'package:cubit_shantika/models/game_models.dart';
+import 'package:cubit_shantika/repository/favourite_repository.dart';
 import 'package:cubit_shantika/ui/app_styles.dart';
 import 'package:cubit_shantika/ui/custom_appbar.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => FavoriteCubit()..loadFavorites(),
+      create: (_) => FavoriteCubit(FavoriteRepository()),
       child: Scaffold(
         backgroundColor: AppStyles.light,
         body: OrangeBackground(

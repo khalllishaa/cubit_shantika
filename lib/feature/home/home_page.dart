@@ -5,6 +5,7 @@ import 'package:cubit_shantika/feature/favourite/cubit/favouite_cubit.dart';
 import 'package:cubit_shantika/feature/favourite/cubit/favourite_state.dart';
 import 'package:cubit_shantika/feature/home/cubit/home_cubit.dart';
 import 'package:cubit_shantika/feature/home/cubit/home_state.dart';
+import 'package:cubit_shantika/repository/favourite_repository.dart';
 import 'package:cubit_shantika/repository/game_repository.dart';
 import 'package:cubit_shantika/ui/app_styles.dart';
 import 'package:cubit_shantika/ui/custom_appbar.dart';
@@ -24,7 +25,7 @@ class HomePage extends StatelessWidget {
           )..fetchInitial(),
         ),
         BlocProvider(
-          create: (_) => FavoriteCubit(),
+          create: (_) => FavoriteCubit(FavoriteRepository()),
         ),
       ],
       child: Builder(
