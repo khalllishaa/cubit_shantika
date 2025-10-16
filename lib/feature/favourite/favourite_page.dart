@@ -1,8 +1,12 @@
 import 'package:cubit_shantika/feature/favourite/cubit/favouite_cubit.dart';
 import 'package:cubit_shantika/feature/favourite/cubit/favourite_state.dart';
+import 'package:cubit_shantika/models/game_models.dart';
+import 'package:cubit_shantika/ui/app_styles.dart';
+import 'package:cubit_shantika/ui/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_shantika/feature/detail/detail_page.dart';
+import 'package:flutter_svg/svg.dart';
 
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});
@@ -12,84 +16,275 @@ class FavoritesPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => FavoriteCubit()..loadFavorites(),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text("My Favorites"),
-        ),
-        body: BlocConsumer<FavoriteCubit, FavoriteState>(
-          listener: (context, state) {
-            if (state is FavoriteToggled) {
-              context.read<FavoriteCubit>().loadFavorites();
-            }
-          },
-          builder: (context, state) {
-            if (state is FavoriteLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+        backgroundColor: AppStyles.light,
+        body: OrangeBackground(
+          showSearch: false,
+          title: "My Favorites",
+          child: BlocConsumer<FavoriteCubit, FavoriteState>(
+            listener: (context, state) {
+              if (state is FavoriteToggled) {
+                context.read<FavoriteCubit>().loadFavorites();
+              }
+            },
+            builder: (context, state) {
+              if (state is FavoriteLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            if (state is FavoriteLoaded) {
-              if (state.favorites.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.favorite_border, size: 80, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text(
-                        "No favorites yet",
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
-                    ],
-                  ),
+              if (state is FavoriteLoaded) {
+                if (state.favorites.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'images/thinking.png',
+                          height: AppStyles.nofav,
+                        ),
+                        SizedBox(height: AppStyles.spaceXL),
+                        Text(
+                          "No favorites yet",
+                          style: AppStyles.title.copyWith(
+                            fontSize: 18,
+                            color: AppStyles.grey3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: EdgeInsets.only(top: AppStyles.paddingM),
+                  itemCount: state.favorites.length,
+                  itemBuilder: (context, index) {
+                    final fav = state.favorites[index];
+
+                    final game = GameModel(
+                      id: fav['id'],
+                      name: fav['name'],
+                      rating: fav['rating'],
+                      backgroundImage: fav['backgroundImage'],
+                      genres: (fav['genres'] as String)
+                          .split(',')
+                          .asMap()
+                          .entries
+                          .map((entry) => GameGenre(
+                        id: entry.key,
+                        name: entry.value.trim(),
+                      ))
+                          .toList(),
+                    );
+
+                    return _buildGameTile(context, game);
+                  },
                 );
               }
 
-              return ListView.builder(
-                itemCount: state.favorites.length,
-                itemBuilder: (context, index) {
-                  final game = state.favorites[index];
-                  return ListTile(
-                    leading: game['backgroundImage'] != null
-                        ? Image.network(
-                      game['backgroundImage'],
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    )
-                        : const Icon(Icons.image_not_supported),
-                    title: Text(game['name']),
-                    subtitle: Text("Rating: ${game['rating'] ?? '-'}"),
-                    trailing: IconButton(
-                      icon: Icon(Icons.favorite, color: Colors.red),
-                      onPressed: () {
-                        context.read<FavoriteCubit>().toggleFavorite(
-                          id: game['id'],
-                          name: game['name'],
-                          rating: game['rating'],
-                          backgroundImage: game['backgroundImage'],
-                        );
-                      },
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DetailPage(gameId: game['id']),
-                        ),
-                      );
-                    },
-                  );
-                },
-              );
-            }
+              if (state is FavoriteError) {
+                return Center(child: Text("Error: ${state.message}"));
+              }
 
-            if (state is FavoriteError) {
-              return Center(child: Text("Error: ${state.message}"));
-            }
-
-            return const SizedBox();
-          },
+              return const SizedBox();
+            },
+          ),
         ),
       ),
     );
   }
+}
+
+Widget _buildGameTile(BuildContext context, dynamic game) {
+  return BlocBuilder<FavoriteCubit, FavoriteState>(
+    builder: (context, favState) {
+      bool isFav = false;
+
+      if (favState is FavoriteLoaded) {
+        isFav = favState.favoriteIds.contains(game.id);
+      } else if (favState is FavoriteToggled) {
+        isFav = favState.favoriteIds.contains(game.id);
+      }
+
+      String genreString = 'unknown';
+      if (game.genres != null && game.genres.isNotEmpty) {
+        genreString = game.genres.map((g) => g.name).join(', ');
+      }
+
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DetailPage(gameId: game.id),
+                ),
+              );
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: AppStyles.paddingL, vertical: AppStyles.paddingXL),
+              decoration: BoxDecoration(
+                color: AppStyles.primary,
+                borderRadius: BorderRadius.circular(AppStyles.radiusL),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppStyles.dark,
+                    offset: Offset(5, 5),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: EdgeInsets.only(left: AppStyles.paddingXXL, right: AppStyles.paddingL, top: AppStyles.paddingM, bottom: AppStyles.paddingL),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            game.name,
+                            style: AppStyles.title,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(width: AppStyles.spaceXXS),
+                        GestureDetector(
+                          onTap: () async {
+                            await context.read<FavoriteCubit>().toggleFavorite(
+                              id: game.id,
+                              name: game.name,
+                              rating: game.rating,
+                              backgroundImage: game.backgroundImage,
+                              genres: game.genres,
+                            );
+
+                            bool isFavNow = await context.read<FavoriteCubit>().isFavorite(game.id);
+
+                            showTopNotification(context, game.name, isFavNow);
+
+                          },
+                          child: Stack(
+                            children: [
+                              if (isFav)
+                                Positioned(
+                                  top: 2,
+                                  left: 2,
+                                  child: Icon(
+                                    Icons.favorite,
+                                    size: AppStyles.iconM,
+                                    color: AppStyles.dark, // shadow color
+                                  ),
+                                ),
+                              Icon(
+                                isFav ? Icons.favorite : Icons.favorite_border,
+                                size: AppStyles.iconM,
+                                color: isFav ? AppStyles.secondary : AppStyles.dark,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: AppStyles.spaceXXS),
+                    // Genre
+                    Text(
+                      "genres: $genreString",
+                      style: AppStyles.genre,
+                    ),
+                    SizedBox(height: AppStyles.spaceS),
+                    Row(
+                      children: [
+                        Icon(Icons.star, size: AppStyles.iconM, color: AppStyles.dark),
+                        SizedBox(width: AppStyles.spaceXS),
+                        Text(
+                          "${game.rating ?? '-'}",
+                          style: AppStyles.genre.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (game.backgroundImage != null)
+            Positioned(
+              left: 25,
+              top: -10,
+              child: Container(
+                width: AppStyles.imagelistsize,
+                height: AppStyles.imagelistsize,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppStyles.radiusL),
+                  border: Border.all(color: AppStyles.light, width: 3.5),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppStyles.radiusL),
+                  child: Image.network(
+                    game.backgroundImage!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    },
+  );
+}
+
+void showTopNotification(
+    BuildContext context,
+    String gameName,
+    bool isFavNow,
+    ) {
+  final String message = isFavNow
+      ? '$gameName added to favorites'
+      : '$gameName removed from favorites';
+
+  final IconData icon = isFavNow ? Icons.favorite : Icons.favorite_border;
+  final Color iconColor = isFavNow ? AppStyles.primary : AppStyles.dark;
+
+  OverlayEntry overlayEntry = OverlayEntry(
+    builder: (context) => Positioned(
+      top: MediaQuery.of(context).padding.top + 12,
+      left: 20,
+      right: 20,
+      child: Material(
+        elevation: 10,
+        borderRadius: BorderRadius.circular(AppStyles.radiusL),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppStyles.paddingXL,
+            vertical: AppStyles.paddingXL,
+          ),
+          decoration: BoxDecoration(
+            color: AppStyles.light,
+            borderRadius: BorderRadius.circular(AppStyles.radiusL),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: iconColor),
+              SizedBox(width: AppStyles.spaceS),
+              Expanded(
+                child: Text(
+                  message,
+                  style: AppStyles.genre,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Overlay.of(context).insert(overlayEntry);
+
+  Future.delayed(const Duration(milliseconds: 1500)).then((_) {
+    overlayEntry.remove();
+  });
 }
