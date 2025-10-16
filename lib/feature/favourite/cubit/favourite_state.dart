@@ -6,14 +6,14 @@ class FavoriteLoading extends FavoriteState {}
 
 class FavoriteLoaded extends FavoriteState {
   final List<Map<String, dynamic>> favorites;
-  final Set<int> favoriteIds; // Tambahkan ini
+  final Set<int> favoriteIds;
 
   FavoriteLoaded({required this.favorites})
       : favoriteIds = favorites.map((fav) => fav['id'] as int).toSet();
 }
 
 class FavoriteToggled extends FavoriteState {
-  final Set<int> favoriteIds; // Tambahkan ini
+  final Set<int> favoriteIds;
   FavoriteToggled({required this.favoriteIds});
 }
 
