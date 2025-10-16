@@ -1,3 +1,4 @@
+import 'package:cubit_shantika/config/constant.dart';
 import 'package:cubit_shantika/config/service_locator.dart';
 import 'package:cubit_shantika/feature/detail/detail_page.dart';
 import 'package:cubit_shantika/feature/favourite/cubit/favouite_cubit.dart';
@@ -5,6 +6,8 @@ import 'package:cubit_shantika/feature/favourite/cubit/favourite_state.dart';
 import 'package:cubit_shantika/feature/home/cubit/home_cubit.dart';
 import 'package:cubit_shantika/feature/home/cubit/home_state.dart';
 import 'package:cubit_shantika/repository/game_repository.dart';
+import 'package:cubit_shantika/ui/app_styles.dart';
+import 'package:cubit_shantika/ui/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,31 +29,22 @@ class HomePage extends StatelessWidget {
       ],
       child: Builder(
         builder: (context) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text("Games"),
-              surfaceTintColor: Color(0xff00ffffff),
-              scrolledUnderElevation: 0,
-              elevation: 0,
-            ),
-            body: BlocBuilder<HomeCubit, HomeState>(
+          return OrangeBackground(
+            showSearch: true,
+            child: BlocBuilder<HomeCubit, HomeState>(
               builder: (context, state) {
                 if (state is GamesLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 if (state is GamesLoaded) {
-                  return BlocListener<FavoriteCubit, FavoriteState>(
-                    listener: (context, favState) {
-                      // Trigger rebuild when favorite changes
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(vertical: AppStyles.paddingM),
+                    itemCount: state.games.length,
+                    itemBuilder: (context, index) {
+                      final game = state.games[index];
+                      return _buildGameTile(context, game);
                     },
-                    child: ListView.builder(
-                      itemCount: state.games.length,
-                      itemBuilder: (context, index) {
-                        final game = state.games[index];
-                        return _buildGameTile(context, game);
-                      },
-                    ),
                   );
                 }
 
@@ -61,8 +55,7 @@ class HomePage extends StatelessWidget {
                 return const SizedBox();
               },
             ),
-          );
-        },
+          );        },
       ),
     );
   }
@@ -73,60 +66,193 @@ Widget _buildGameTile(BuildContext context, dynamic game) {
     builder: (context, favState) {
       bool isFav = false;
 
-      // Check dari berbagai state
       if (favState is FavoriteLoaded) {
         isFav = favState.favoriteIds.contains(game.id);
       } else if (favState is FavoriteToggled) {
         isFav = favState.favoriteIds.contains(game.id);
       }
 
-      return ListTile(
-        leading: game.backgroundImage != null
-            ? Image.network(
-          game.backgroundImage!,
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
-        )
-            : const Icon(Icons.image_not_supported),
-        title: Text(game.name),
-        subtitle: Text("Rating: ${game.rating ?? '-'}"),
-        trailing: IconButton(
-          icon: Icon(
-            isFav ? Icons.favorite : Icons.favorite_border,
-            color: Colors.red,
-          ),
-          onPressed: () async {
-            await context.read<FavoriteCubit>().toggleFavorite(
-              id: game.id,
-              name: game.name,
-              rating: game.rating,
-              backgroundImage: game.backgroundImage,
-            );
+      String genreString = 'unknown';
+      if (game.genres != null && game.genres.isNotEmpty) {
+        genreString = game.genres.map((g) => g.name).join(', ');
+      }
 
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    isFav
-                        ? '${game.name} removed from favorites'
-                        : '${game.name} added to favorites',
-                  ),
-                  duration: const Duration(seconds: 1),
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DetailPage(gameId: game.id),
                 ),
               );
-            }
-          },
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => DetailPage(gameId: game.id),
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: AppStyles.paddingL, vertical: AppStyles.paddingXL),
+              decoration: BoxDecoration(
+                color: AppStyles.primary,
+                borderRadius: BorderRadius.circular(AppStyles.radiusL),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppStyles.dark,
+                    offset: Offset(5, 5),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: EdgeInsets.only(left: AppStyles.paddingXXL, right: AppStyles.paddingL, top: AppStyles.paddingM, bottom: AppStyles.paddingL),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            game.name,
+                            style: AppStyles.title,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(width: AppStyles.spaceXXS),
+                        GestureDetector(
+                          onTap: () async {
+                            await context.read<FavoriteCubit>().toggleFavorite(
+                              id: game.id,
+                              name: game.name,
+                              rating: game.rating,
+                              backgroundImage: game.backgroundImage,
+                              genres: game.genres,
+                            );
+
+                            bool isFavNow = await context.read<FavoriteCubit>().isFavorite(game.id);
+
+                            showTopNotification(context, game.name, isFavNow);
+
+                          },
+                          child: Stack(
+                            children: [
+                              if (isFav)
+                                Positioned(
+                                  top: 2,
+                                  left: 2,
+                                  child: Icon(
+                                    Icons.favorite,
+                                    size: AppStyles.iconM,
+                                    color: AppStyles.dark, // shadow color
+                                  ),
+                                ),
+                              Icon(
+                                isFav ? Icons.favorite : Icons.favorite_border,
+                                size: AppStyles.iconM,
+                                color: isFav ? AppStyles.secondary : AppStyles.dark,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: AppStyles.spaceXXS),
+                    // Genre
+                    Text(
+                      "genres: $genreString",
+                      style: AppStyles.genre,
+                    ),
+                    SizedBox(height: AppStyles.spaceS),
+                    Row(
+                      children: [
+                        Icon(Icons.star, size: AppStyles.iconM, color: AppStyles.dark),
+                        SizedBox(width: AppStyles.spaceXS),
+                        Text(
+                          "${game.rating ?? '-'}",
+                          style: AppStyles.genre.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          );
-        },
+          ),
+          if (game.backgroundImage != null)
+            Positioned(
+              left: 25,
+              top: -10,
+              child: Container(
+                width: AppStyles.imagelistsize,
+                height: AppStyles.imagelistsize,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppStyles.radiusL),
+                  border: Border.all(color: AppStyles.light, width: 3.5),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppStyles.radiusL),
+                  child: Image.network(
+                    game.backgroundImage!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+        ],
       );
     },
   );
+}
+
+void showTopNotification(
+    BuildContext context,
+    String gameName,
+    bool isFavNow,
+    ) {
+  final String message = isFavNow
+      ? '$gameName added to favorites'
+      : '$gameName removed from favorites';
+
+  final IconData icon = isFavNow ? Icons.favorite : Icons.favorite_border;
+
+  final Color iconColor = isFavNow ? AppStyles.primary : AppStyles.dark;
+
+  OverlayEntry overlayEntry = OverlayEntry(
+    builder: (context) => Positioned(
+      top: MediaQuery.of(context).padding.top + 12,
+      left: 20,
+      right: 20,
+      child: Material(
+        elevation: 10,
+        borderRadius: BorderRadius.circular(AppStyles.radiusL),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppStyles.paddingXL,
+            vertical: AppStyles.paddingXL,
+          ),
+          decoration: BoxDecoration(
+            color: AppStyles.light,
+            borderRadius: BorderRadius.circular(AppStyles.radiusL),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: iconColor),
+              SizedBox(width: AppStyles.spaceS),
+              Expanded(
+                child: Text(
+                  message,
+                  style: AppStyles.genre,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Overlay.of(context).insert(overlayEntry);
+
+  Future.delayed(const Duration(milliseconds: 1500)).then((_) {
+    overlayEntry.remove();
+  });
 }

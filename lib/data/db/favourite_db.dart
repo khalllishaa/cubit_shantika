@@ -13,27 +13,40 @@ class DatabaseHelper {
     return _database!;
   }
 
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      print('Upgrading database...');
+      await db.execute('ALTER TABLE favorites ADD COLUMN genres TEXT');
+      print('Database upgraded');
+    }
+  }
+
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
+    // Hapus database lama
+    await deleteDatabase(path);
+
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE favorites (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        rating REAL,
-        backgroundImage TEXT,
-        addedAt TEXT NOT NULL
-      )
-    ''');
+    CREATE TABLE favorites (
+      id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      genres TEXT,
+      rating REAL,
+      backgroundImage TEXT,
+      addedAt TEXT NOT NULL
+    )
+  ''');
   }
 
   Future<void> addFavorite(Map<String, dynamic> game) async {

@@ -6,29 +6,6 @@ import 'package:cubit_shantika/repository/base/base_repository.dart';
 import '../config/constant.dart';
 import '../utils/data_state.dart';
 
-// class GameRepository {
-//   final ApiService api;
-//
-//   GameRepository(this.api);
-//
-//   Future<List<GameModel>> fetchGames({int page = 1, int pageSize = 20}) async {
-//     final json = await api.getGames(page: page, pageSize: pageSize);
-//     final results = json['results'] as List<dynamic>;
-//     return results.map((e) => GameModel.fromJson(e as Map<String, dynamic>)).toList();
-//   }
-//
-//   Future<List<GameModel>> searchGames({required String query, int page = 1, int pageSize = 20}) async {
-//     final json = await api.searchGames(query: query, page: page, pageSize: pageSize);
-//     final results = json['results'] as List<dynamic>;
-//     return results.map((e) => GameModel.fromJson(e as Map<String, dynamic>)).toList();
-//   }
-//
-//   Future<GameModel> getDetail(int id) async {
-//     final json = await api.getDetail(id);
-//     return GameModel.fromJson(json);
-//   }
-// }
-
 class GameRepository extends BaseRepository {
   final ApiService _apiService;
 
