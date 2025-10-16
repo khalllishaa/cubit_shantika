@@ -49,6 +49,24 @@ class HomePage extends StatelessWidget {
                   );
                 }
 
+                // if (state is GamesLoaded) {
+                //   return Column(
+                //     children: [
+                //       Expanded(
+                //         child: ListView.builder(
+                //           padding: EdgeInsets.symmetric(vertical: AppStyles.paddingM),
+                //           itemCount: state.games.length,
+                //           itemBuilder: (context, index) {
+                //             final game = state.games[index];
+                //             return _buildGameTile(context, game);
+                //           },
+                //         ),
+                //       ),
+                //       _buildPagination(context, state.page),  // Tambah ini
+                //     ],
+                //   );
+                // }
+
                 if (state is GamesError) {
                   return Center(child: Text("Error: ${state.message}"));
                 }
@@ -103,7 +121,9 @@ Widget _buildGameTile(BuildContext context, dynamic game) {
                 ],
               ),
               child: Padding(
-                padding: EdgeInsets.only(left: AppStyles.paddingXXL, right: AppStyles.paddingL, top: AppStyles.paddingM, bottom: AppStyles.paddingL),
+                padding: EdgeInsets.only(
+                    left: AppStyles.paddingXXL, right: AppStyles.paddingL, top: AppStyles.paddingM, bottom: AppStyles.paddingL
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -257,3 +277,68 @@ void showTopNotification(
     overlayEntry.remove();
   });
 }
+
+// Widget _buildPagination(BuildContext context, int currentPage) {
+//   return Container(
+//     padding: EdgeInsets.all(16),
+//     child: Row(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         GestureDetector(
+//           onTap: () => context.read<HomeCubit>().previousPage(),
+//           child: Container(
+//             width: 40,
+//             height: 40,
+//             decoration: BoxDecoration(
+//               color: currentPage > 1 ? AppStyles.primary : Colors.grey[300],
+//               borderRadius: BorderRadius.circular(20),
+//             ),
+//             child: Icon(Icons.chevron_left, color: AppStyles.dark),
+//           ),
+//         ),
+//         SizedBox(width: 12),
+//         ...List.generate(5, (index) {
+//           int pageNum = index + 1;
+//           return Row(
+//             children: [
+//               GestureDetector(
+//                 onTap: () => context.read<HomeCubit>().goToPage(pageNum),
+//                 child: Container(
+//                   width: 40,
+//                   height: 40,
+//                   decoration: BoxDecoration(
+//                     color: currentPage == pageNum ? AppStyles.primary : Colors.transparent,
+//                     borderRadius: BorderRadius.circular(8),
+//                     border: Border.all(color: currentPage == pageNum ? AppStyles.primary : Colors.grey),
+//                   ),
+//                   child: Center(
+//                     child: Text(
+//                       pageNum.toString(),
+//                       style: TextStyle(
+//                         fontWeight: currentPage == pageNum ? FontWeight.bold : FontWeight.normal,
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//               if (index < 4) SizedBox(width: 8),
+//             ],
+//           );
+//         }),
+//         SizedBox(width: 12),
+//         GestureDetector(
+//           onTap: () => context.read<HomeCubit>().nextPage(),
+//           child: Container(
+//             width: 40,
+//             height: 40,
+//             decoration: BoxDecoration(
+//               color: AppStyles.primary,
+//               borderRadius: BorderRadius.circular(20),
+//             ),
+//             child: Icon(Icons.chevron_right, color: AppStyles.dark),
+//           ),
+//         ),
+//       ],
+//     ),
+//   );
+// }
