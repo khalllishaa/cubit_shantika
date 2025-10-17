@@ -18,12 +18,13 @@ class AppStyles {
   static final TextStyle title = GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: AppStyles.dark);
   static final TextStyle genre = GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.normal, color: AppStyles.dark);
   static final TextStyle header = GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: AppStyles.dark);
+  static final TextStyle detail = GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.normal, color: AppStyles.dark);
 
   // Icon Sizes
   static const double iconS = 15.0;
   static const double iconM = 20.0;
   static const double iconL = 36.0;
-  static const double iconXL = 48.0;
+  static const double icondetail = 32.0;
   static const double iconsearch = 24.0;
 
   // Padding & Margin
@@ -35,6 +36,7 @@ class AppStyles {
   static const double paddingXL = 20.0;
   static const double paddingXXL = 135.0;
   static const double paddingheight = 60.0;
+  static const double paddingdetail = 40.0;
 
   // Spacing
   static const double spaceXXS = 2.0;
@@ -43,6 +45,8 @@ class AppStyles {
   static const double spaceM = 12.0;
   static const double spaceL = 16.0;
   static const double spaceXL = 25.0;
+  static const double spaceHeader = 60.0;
+  static const double spaceimagedetail = 45.0;
 
   // Border Radius
   static const double radiusS = 8.0;
@@ -56,5 +60,8 @@ class AppStyles {
   static const double bottomsizeheigth = 70.0;
   static const double bottomsizewidth = 300.0;
   static const double headerheight = 210.0;
-  static const double nofav = 240.0;
+  static const double nofavsize = 240.0;
+  static const double detailwidth = 335.0;
+  static const double detailheight = 55.0;
+  static const double detailsize = 180.0;
 }
