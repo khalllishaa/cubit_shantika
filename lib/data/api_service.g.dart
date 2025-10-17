@@ -24,15 +24,9 @@ class _ApiService implements ApiService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<HttpResponse<GamesResponse>> getGames({
-    int? page,
-    int? pageSize,
-  }) async {
+  Future<HttpResponse<GamesResponse>> getGames({int? page}) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'page': page,
-      r'page_size': pageSize,
-    };
+    final queryParameters = <String, dynamic>{r'page': page};
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;

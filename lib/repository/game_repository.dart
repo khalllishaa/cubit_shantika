@@ -12,25 +12,15 @@ class GameRepository extends BaseRepository {
   GameRepository(this._apiService);
 
   /// Fetch games dengan pagination
-  Future<List<GameModel>> fetchGames({
-    int page = 1,
-    int pageSize = AppConfig.defaultPageSize,
-  }) async {
-    try {
-      final dataState = await getStateOf<GamesResponse>(
-        request: () => _apiService.getGames(
-          page: page,
-          pageSize: pageSize,
-        ),
-      );
+  Future<List<GameModel>> fetchGames({required int page}) async {
+    final dataState = await getStateOf<GamesResponse>(
+      request: () => _apiService.getGames(page: page),
+    );
 
-      if (dataState is DataStateSuccess) {
-        return dataState.data!.results;
-      } else {
-        throw Exception('Failed to fetch games');
-      }
-    } catch (e) {
-      throw Exception('Repository error: $e');
+    if (dataState is DataStateSuccess) {
+      return dataState.data!.results;
+    } else {
+      throw Exception('Failed to fetch games');
     }
   }
 

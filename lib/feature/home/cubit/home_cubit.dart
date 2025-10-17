@@ -1,3 +1,4 @@
+import 'package:cubit_shantika/config/constant.dart';
 import 'package:cubit_shantika/feature/home/cubit/home_state.dart';
 import 'package:cubit_shantika/models/game_models.dart';
 import 'package:cubit_shantika/repository/game_repository.dart';
@@ -7,56 +8,51 @@ class HomeCubit extends Cubit<HomeState> {
   final GameRepository repo;
   final int pageSize;
 
-  HomeCubit({required this.repo, this.pageSize = 20}) : super(GamesInitial());
+  HomeCubit({required this.repo})
+      : pageSize = AppConfig.defaultPageSize,
+        super(GamesInitial());
 
-  int _currentPage = 1;
+  int _currentPage = 5;
   List<GameModel> _allGames = [];
   String _searchQuery = '';
+  bool _isLoadingMore = false;
 
   Future<void> fetchInitial() async {
-    try {
-      emit(GamesLoading());
-      _currentPage = 1;
-      _searchQuery = '';
-      final list = await repo.fetchGames(page: _currentPage, pageSize: pageSize);
-      _allGames = list;
-      final hasReached = list.length < pageSize;
-      emit(GamesLoaded(games: list, hasReachedMax: hasReached, page: _currentPage));
-    } catch (e) {
-      emit(GamesError(e.toString()));
-    }
+    emit(GamesLoading());
+    _currentPage = 1;
+    final list = await repo.fetchGames(page: _currentPage);
+    _allGames = list;
+    emit(GamesLoaded(
+      games: _allGames,
+      hasReachedMax: list.isEmpty,
+      page: _currentPage,
+    ));
   }
 
-  // Pagination
-  Future<void> goToPage(int pageNum) async {
-    try {
-      emit(GamesLoading());
-      _currentPage = pageNum;
-      _searchQuery = '';
-      final list = await repo.fetchGames(page: _currentPage, pageSize: pageSize);
-      _allGames = list;
-      final hasReached = list.length < pageSize;
-      emit(GamesLoaded(
-        games: list,
-        hasReachedMax: hasReached,
-        page: _currentPage,
-      ));
-    } catch (e) {
-      emit(GamesError(e.toString()));
-    }
-  }
-
-  Future<void> nextPage() async {
+  Future<void> loadMore() async {
     final current = state;
-    if (current is GamesLoaded && !current.hasReachedMax) {
-      await goToPage(_currentPage + 1);
-    }
-  }
+    if (current is! GamesLoaded || current.hasReachedMax || _isLoadingMore) return;
 
-  Future<void> previousPage() async {
-    if (_currentPage > 1) {
-      await goToPage(_currentPage - 1);
+    _isLoadingMore = true;
+    _currentPage++;
+
+    try {
+      final newList = await repo.fetchGames(page: _currentPage);
+      if (newList.isEmpty) {
+        emit(current.copyWith(hasReachedMax: true));
+      } else {
+        _allGames.addAll(newList);
+        emit(current.copyWith(
+          games: List<GameModel>.from(_allGames),
+          hasReachedMax: newList.length < 50,
+          page: _currentPage,
+        ));
+      }
+    } catch (e) {
+      emit(GamesError(e.toString()));
     }
+
+    _isLoadingMore = false;
   }
 
   // Search function

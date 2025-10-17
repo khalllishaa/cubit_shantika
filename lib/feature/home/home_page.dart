@@ -13,7 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  HomePage({super.key});
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -48,24 +49,27 @@ class HomePage extends StatelessWidget {
                     },
                   );
                 }
+                if (state is GamesLoaded) {
+                  return ListView.builder(
+                    controller: _scrollController,
+                    itemCount: state.hasReachedMax
+                        ? state.games.length
+                        : state.games.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index >= state.games.length) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
 
-                // if (state is GamesLoaded) {
-                //   return Column(
-                //     children: [
-                //       Expanded(
-                //         child: ListView.builder(
-                //           padding: EdgeInsets.symmetric(vertical: AppStyles.paddingM),
-                //           itemCount: state.games.length,
-                //           itemBuilder: (context, index) {
-                //             final game = state.games[index];
-                //             return _buildGameTile(context, game);
-                //           },
-                //         ),
-                //       ),
-                //       _buildPagination(context, state.page),  // Tambah ini
-                //     ],
-                //   );
-                // }
+                      final game = state.games[index];
+                      return _buildGameTile(context, game);
+                    },
+                  );
+                }
 
                 if (state is GamesError) {
                   return Center(child: Text("Error: ${state.message}"));
