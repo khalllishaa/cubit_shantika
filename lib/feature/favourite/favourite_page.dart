@@ -40,7 +40,7 @@ class FavoritesPage extends StatelessWidget {
                       children: [
                         Image.asset(
                           'images/thinking.png',
-                          height: AppStyles.nofav,
+                          height: AppStyles.nofavsize,
                         ),
                         SizedBox(height: AppStyles.spaceXL),
                         Text(
